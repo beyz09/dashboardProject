@@ -1,0 +1,11 @@
+[theme]
+base="light"
+primaryColor="#0066cc"  # 🔵 Mavi - Bilgi/Nötr
+backgroundColor="#f5f5f5"  # ⚪ Gri - Arka plan
+secondaryBackgroundColor="#ffffff"  # Beyaz - İkincil arka plan
+textColor="#222222"
+font="sans serif"
+
+[server]
+enableCORS=false
+enableXsrfProtection=true
