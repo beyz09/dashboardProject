@@ -26,6 +26,3 @@ Bu proje, doktorların diyabet hastalarına ait sağlık verilerini görsel olar
 - Trend ve dağılım analizleri
 - Etkileşimli filtreler
 - Görsel grafikler
-
-## Not
-Veritabanı bağlantı bilgilerinizin doğru olduğundan emin olun. 
