@@ -5,7 +5,7 @@ import plotly.express as px
 from db_utils import fetch_data
 
 # Sayfa ayarı ve tema
-st.set_page_config(page_title="Diyabet Analiz Paneli", layout="wide")
+st.set_page_config(page_title="FuAy Hastanesi Diyabet Analiz Paneli", layout="wide")
 st.markdown("""
     <style>
         .stApp {
@@ -31,7 +31,7 @@ lang = st.sidebar.selectbox("Dil / Language", ["Türkçe", "English"])
 tr = lang == "Türkçe"
 
 # === Başlık ===
-st.title("Diyabet Analiz Paneli" if tr else "Diabetes Analytics")
+st.title("FuAy Hastanesi Diyabet Analiz Paneli" if tr else "Diabetes Analytics")
 
 # === Veriyi MSSQL'den çek ===
 query = "SELECT * FROM diabetes"
@@ -85,34 +85,37 @@ st.sidebar.slider("Gebelik Aralığı", 0, 17, (0, 17))
 # === Risk Dağılımı (Pasta Grafiği) ===
 risk_counts = filtered_df["DiabetesRisk"].value_counts()
 risk_colors = {
-    "Düşük": "#4CAF50",  # 🟢 Yeşil - Normal/Stabil
-    "Orta": "#FFC107",   # 🟡 Sarı - Orta risk/İzlenmeli
-    "Yüksek": "#F44336"  # 🔴 Kırmızı - Yüksek risk/Kritik
+    "Düşük": "#0704bd",  # Mavi
+    "Low": "#0704bd",    # Mavi
+    "Orta": "#FFC107",   # Sarı
+    "Medium": "#FFC107", # Sarı
+    "Yüksek": "#F44336", # Kırmızı
+    "High": "#F44336"    # Kırmızı
 }
 fig_risk = px.pie(values=risk_counts, names=risk_counts.index,
     title="Diyabet Risk Dağılımı" if tr else "Diabetes Risk Distribution",
     hole=0.4, color=risk_counts.index, color_discrete_map=risk_colors)
-st.plotly_chart(fig_risk, use_container_width=True)
 
 # === Glikozun Yaşa Göre Ortalaması ===
 glucose_age = filtered_df.groupby("Age")["Glucose"].mean().reset_index()
 fig_glucose = px.line(glucose_age, x="Age", y="Glucose",
     title="Yaşa Göre Glikoz Ortalaması" if tr else "Average Glucose by Age",
     markers=True, color_discrete_sequence=["#2196F3"])  # 🔵 Mavi - Bilgi/Nötr
-st.plotly_chart(fig_glucose, use_container_width=True)
 
 # === BMI Dağılımı Pasta Grafiği ===
 bmi_counts = filtered_df["BMI_Category"].value_counts()
 bmi_colors = {
-    "Zayıf": "#FFC107",      # 🟡 Sarı - İzlenmeli
-    "Normal": "#4CAF50",     # 🟢 Yeşil - Normal
-    "Fazla Kilolu": "#FF9800", # 🟠 Turuncu - İşleniyor
-    "Obez": "#F44336"        # 🔴 Kırmızı - Kritik
+    "Zayıf": "#FFC107",      # Sarı
+    "Underweight": "#FFC107", # Sarı
+    "Normal": "#0704bd",     # Mavi
+    "Fazla Kilolu": "#FF9800", # Turuncu
+    "Overweight": "#FF9800",   # Turuncu
+    "Obez": "#F44336",        # Kırmızı
+    "Obese": "#F44336"        # Kırmızı
 }
 fig_bmi = px.pie(values=bmi_counts, names=bmi_counts.index,
     title="BMI Kategorisi Dağılımı" if tr else "BMI Category Distribution",
     hole=0.4, color=bmi_counts.index, color_discrete_map=bmi_colors)
-st.plotly_chart(fig_bmi, use_container_width=True)
 
 # === Gauge: Risk Skoru ===
 import plotly.graph_objects as go
@@ -126,23 +129,36 @@ fig_gauge = go.Figure(go.Indicator(
         'axis': {'range': [0, 40]},
         'bar': {'color': gauge_color},
         'steps': [
-            {'range': [0, 20], 'color': "#4CAF50"},  # 🟢 Yeşil - Normal
-            {'range': [20, 30], 'color': "#FFC107"}, # 🟡 Sarı - İzlenmeli
-            {'range': [30, 40], 'color': "#F44336"}  # 🔴 Kırmızı - Kritik
-        ]
+            {'range': [0, 20], 'color': "#0704bd"},  # Mavi - Normal
+            {'range': [20, 30], 'color': "#FFC107"}, # Sarı - İzlenmeli
+            {'range': [30, 40], 'color': "#F44336"}  # Kırmızı - Kritik
+        ]   
     },
     title={'text': "Diyabet Risk Skoru" if tr else "Diabetes Risk Score"}))
-st.plotly_chart(fig_gauge, use_container_width=True)
 
 # === Kan Basıncı Yaşa Göre Bar Grafiği ===
 bp_age = filtered_df.groupby("Age")["BloodPressure"].mean().reset_index()
 fig_bp = px.bar(bp_age, x="BloodPressure", y="Age", orientation="h",
     title="Yaşa Göre Kan Basıncı" if tr else "Blood Pressure by Age",
     color_discrete_sequence=["#2196F3"])  # 🔵 Mavi - Bilgi/Nötr
-st.plotly_chart(fig_bp, use_container_width=True)
 
 # === Yaş & BMI'ye Göre Kan Basıncı Tablosu ===
 pivot = pd.pivot_table(filtered_df, values="BloodPressure",
                        index="AgeGroup", columns="BMI_Category", aggfunc=np.mean).round(2)
-st.subheader("Yaş ve BMI'ye Göre Ortalama Kan Basıncı" if tr else "Blood Pressure by Age and BMI")
+
+# === Grafik ve Tablo Grid Düzeni ===
+grid1_col1, grid1_col2, grid1_col3 = st.columns(3)
+with grid1_col1:
+    st.plotly_chart(fig_risk, use_container_width=True)
+with grid1_col2:
+    st.plotly_chart(fig_bmi, use_container_width=True)
+with grid1_col3:
+    st.plotly_chart(fig_glucose, use_container_width=True)
+
+grid2_col1, grid2_col2 = st.columns(2)
+with grid2_col1:
+    st.plotly_chart(fig_gauge, use_container_width=True)
+with grid2_col2:
+    st.plotly_chart(fig_bp, use_container_width=True)
+
 st.dataframe(pivot)
